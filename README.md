@@ -3,18 +3,19 @@
 This is a client of [TenIO](https://github.com/congcoi123/tenio) project base on [Unity](https://unity.com/) engine.
 
 ## Features
-
+- It's used to simulator the communication between the client and its server.
 
 ## First glimpse
-
+![Simple Communication](https://github.com/congcoi123/tenio/blob/master/assets/login-example-unity-1.gif)
 
 ## Wiki
 The [wiki](https://github.com/congcoi123/tenio-unity/wiki) provides implementation level details and answers to general questions.
 
 ## Dependencies
+- Unity 2019.1.2f1
 
 ## License
-This project is currently available under the [MIT](https://github.com/congcoi123/tenio-unity/blob/master/LICENSE) License.
+This project is currently available under the [MIT](LICENSE) License.
 
 ## Installation
 You can get the sources:
