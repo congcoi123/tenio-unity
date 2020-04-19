@@ -24,10 +24,17 @@ git clone https://github.com/congcoi123/tenio-unity
 ```
 
 ## Other Clients
-- [TenIOCocos2dx](https://github.com/congcoi123/tenio-cocos2dx)
+- [TenIOCocos2dx](https://github.com/congcoi123/tenio-cocos2dx.git)
+- [TenIOLibgdx](https://github.com/congcoi123/tenio-libgdx.git)
 - [TenIOJs](https://github.com/congcoi123/tenio-js.git)
 
 ## Running
 Please start the server in example 1 before running this client. You start running the class below for your client-side:
+```txt
+|-- example
+    |-- example1
+    |   |-- TestClientLogin.java
+    |   |-- TestServerLogin.java
+```
 
 > Happy coding !
