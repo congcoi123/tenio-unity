@@ -1,76 +1,116 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
+using SimpleMsgPack;
 
-/// <summary>
-/// This Client inheritated class acts like Client using UI elements like buttons and input fields.
-/// </summary>
-public class CustomClient : Client
+public class CustomClient : MonoBehaviour, ITcpListener
 {
+    #region Public Variables
+    [Header("Network")]
+    public string host = "localhost";
+    public int port = 8032;
+    #endregion
+
     [Header("UI References")]
-    [SerializeField] private Button m_StartClientButton = null;
-    [SerializeField] private Button m_SendToServerButton = null;
-    [SerializeField] private InputField m_SendToServerInputField = null;
-    [SerializeField] private Button m_SendCloseButton = null;
-    [SerializeField] private Text m_ClientLogger = null;
+    [SerializeField] private Button __startButton = null;
+    [SerializeField] private Button __closeButton = null;
+    [SerializeField] private Text __clientLogger = null;
 
-    //Set UI interactable properties
-    private void Awake()
+    private TcpConnection __tcpConnection = null;
+
+    void Awake()
     {
-        //Start Client
-        m_StartClientButton.onClick.AddListener(base.StartClient);
+        DontDestroyOnLoad(this);
+    }
 
-        //Send to Server
-        m_SendToServerButton.interactable = false;
-        m_SendToServerButton.onClick.AddListener(SendMessageToServer);
+    void Start()
+    {
+        __tcpConnection = new TcpConnection(this, host, port);
 
-        //SendClose
-        m_SendCloseButton.interactable = false;
-        m_SendCloseButton.onClick.AddListener(SendCloseToServer);
+        __startButton.onClick.AddListener(connectToServer);
 
-        //Populate Client delegates
-        OnClientStarted = () =>
+        __closeButton.interactable = false;
+        __closeButton.onClick.AddListener(disconnectFromServer);
+
+        __tcpConnection.onClientStarted = () =>
         {
-            //Set UI interactable properties        
-            m_SendCloseButton.interactable = true;
-            m_SendToServerButton.interactable = true;
-            m_StartClientButton.interactable = false;
+            __closeButton.interactable = true;
         };
 
-        OnClientClosed = () =>
+        __tcpConnection.onClientClosed = () =>
         {
-            //Set UI interactable properties        
-            m_StartClientButton.interactable = true;
-            m_SendToServerButton.interactable = false;
-            m_SendCloseButton.interactable = false;
+            __startButton.interactable = true;
         };
     }
 
-    private void SendMessageToServer()
-    {
-        string newMsg = m_SendToServerInputField.text;
-        base.SendMessageToServer(newMsg);
+    void Update() {
+        __tcpConnection.processMessage();
     }
 
-    private void SendCloseToServer()
+    public void onReceivedTCP(Message message) 
     {
-        base.SendMessageToServer("Close");
-        //Set UI interactable properties        
-        m_SendCloseButton.interactable = false;
+        MsgPack msgpack = new MsgPack();
+        
+        msgpack.DecodeFromBytes(message.content);
+
+        StringBuilder builder = new StringBuilder();
+        builder.Append("[");
+        builder.Append("c: ");
+        builder.Append(msgpack.ForcePathObject("c").AsString);
+        builder.Append(", ");
+        builder.Append("d: [");
+        foreach (MsgPack item in msgpack.ForcePathObject("d"))
+        {
+            if (item.ValueType != MsgPackType.Array) 
+            {
+                builder.Append(item.AsString);
+                builder.Append(", ");
+            }
+            else
+            {
+                builder.Append("[");
+                foreach (MsgPack i in item)
+                {
+                    builder.Append(i.AsString);
+                    builder.Append(", ");
+                }
+                builder.Append("]");
+            }
+
+        }
+        builder.Append("]");
+
+        clientLog(builder.ToString());
+    }
+
+    public void connectToServer()
+    {
+        __tcpConnection.start();
+        
+        MsgPack msgpack = new MsgPack();
+        msgpack.ForcePathObject("u").AsString = "kong";
+        byte[] packData = msgpack.Encode2Bytes();
+        var msg = new Message(packData);
+        __tcpConnection.send(msg);
+    }
+
+    public void disconnectFromServer()
+    {
+        __tcpConnection.close();
     }
 
     //Custom Client Log
     #region ClientLog
-    protected override void ClientLog(string msg, Color color)
+    public void clientLog(string msg, Color color)
     {
-        base.ClientLog(msg, color);
-        m_ClientLogger.text += '\n' + "<color=#" + ColorUtility.ToHtmlStringRGBA(color) + ">- " + msg + "</color>";
+        __clientLogger.text += '\n' + "<color=#" + ColorUtility.ToHtmlStringRGBA(color) + ">- " + msg + "</color>";
     }
-    protected override void ClientLog(string msg)
+    public void clientLog(string msg)
     {
-        base.ClientLog(msg);
-        m_ClientLogger.text += '\n' + "- " + msg;
+        __clientLogger.text += '\n' + "- " + msg;
     }
     #endregion
+
 }
