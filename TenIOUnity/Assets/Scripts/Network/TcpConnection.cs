@@ -30,8 +30,9 @@ using System.Threading;
 using SimpleMsgPack;
 using UnityEngine;
 
-public class TcpConnection {
-
+public class TcpConnection
+{
+    
     #region Delegate Variables
     public Action onClientStarted = null;
     public Action onClientClosed = null;
@@ -41,7 +42,7 @@ public class TcpConnection {
     private BinaryReader __reader = null;
     private BinaryWriter __writer = null;
     private Thread __networkThread = null;
-    private Queue<Message> __messageQueue = null;
+    private Queue<TcpMessage> __messageQueue = null;
     private ITcpListener __listener = null;
     private string __host = null;
     private int __port = 0;
@@ -49,12 +50,12 @@ public class TcpConnection {
     public TcpConnection(ITcpListener listener, String host, int port) 
     {
         __listener = listener;
-        __messageQueue = new Queue<Message>();
+        __messageQueue = new Queue<TcpMessage>();
         __host = host;
         __port = port;
     }
 
-    private void __addItemToQueue(Message item) 
+    private void __addItemToQueue(TcpMessage item) 
     {
         lock(__messageQueue) 
         {
@@ -62,7 +63,7 @@ public class TcpConnection {
         }
     }
 
-    private Message __getItemFromQueue() 
+    private TcpMessage __getItemFromQueue() 
     {
         lock(__messageQueue) 
         {
@@ -97,7 +98,7 @@ public class TcpConnection {
             __networkThread = new Thread(() => {
                 while (__reader != null) 
                 {
-                    Message message = Message.ReadFromStream(__reader);
+                    TcpMessage message = TcpMessageHelper.readFromStream(__reader);
                     if (message != null) 
                     {
                         __addItemToQueue(message);
@@ -114,16 +115,16 @@ public class TcpConnection {
 
     public void processMessage() 
     {
-        Message message = __getItemFromQueue();
+        TcpMessage message = __getItemFromQueue();
         if (message != null) 
         {
             __listener.onReceivedTCP(message);
         }
     }
 
-    public void send(Message message) 
+    public void send(TcpMessage message) 
     {
-        message.WriteToStream(__writer);
+        TcpMessageHelper.writeToStream(message, __writer);
         __writer.Flush();
     }
 

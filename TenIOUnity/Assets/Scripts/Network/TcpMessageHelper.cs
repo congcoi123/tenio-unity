@@ -1,4 +1,4 @@
-/*
+﻿/*
 The MIT License
 
 Copyright (c) 2016-2020 kong <congcoi123@gmail.com>
@@ -21,10 +21,46 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
+using System;
+using System.IO;
 
-public interface ITcpListener
+public class TcpMessageHelper 
 {
 
-    void onReceivedTCP(Message message);
+    public static TcpMessage readFromStream(BinaryReader reader) 
+    {
+        ushort dataLength;
+        byte[] lengthBuffer;
+        byte[] dataBuffer;
+
+        lengthBuffer = reader.ReadBytes(TcpMessage.HEADER_LENGTH);
+        if (lengthBuffer.Length > 0) 
+        {
+            if (BitConverter.IsLittleEndian) 
+            {
+                Array.Reverse(lengthBuffer);
+            }
+
+            dataLength = BitConverter.ToUInt16(lengthBuffer, 0);
+            dataBuffer = reader.ReadBytes(dataLength);
+
+            return new TcpMessage(dataBuffer);
+        }
+
+        return null;
+    }
+
+    public static void writeToStream(TcpMessage message, BinaryWriter writer) 
+    {
+        byte[] lengthBuffer = BitConverter.GetBytes(message.getLength());
+
+        if (BitConverter.IsLittleEndian) 
+        {
+            Array.Reverse(lengthBuffer);
+        }
+
+        writer.Write(lengthBuffer);
+        writer.Write(message.getContent());
+    }
 
 }

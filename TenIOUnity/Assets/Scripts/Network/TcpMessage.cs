@@ -24,43 +24,28 @@ THE SOFTWARE.
 using System;
 using System.IO;
 
-public class Message {
-    public ushort length { get; set; }
-    public byte[] content { get; set; }
+public class TcpMessage 
+{
+    
+    public const int HEADER_LENGTH = 2;
 
-    public static Message ReadFromStream(BinaryReader reader) {
-        ushort len;
-        byte[] len_buf;
-        byte[] buffer;
+    private ushort __length;
+    private byte[] __content;
 
-        len_buf = reader.ReadBytes(2);
-        if (len_buf.Length > 0) {
-            if (BitConverter.IsLittleEndian) {
-                Array.Reverse(len_buf);
-            }
-            len = BitConverter.ToUInt16(len_buf, 0);
-
-            buffer = reader.ReadBytes(len);
-
-            return new Message(buffer);
-        }
-
-        return null;
+    public TcpMessage(byte[] data)
+    {
+        __length = (ushort)data.Length;
+        __content = data;
     }
 
-    public void WriteToStream(BinaryWriter writer) {
-        byte[] len_bytes = BitConverter.GetBytes(length);
-
-        if (BitConverter.IsLittleEndian) {
-            Array.Reverse(len_bytes);
-        }
-        writer.Write(len_bytes);
-
-        writer.Write(content);
+    public ushort getLength()
+    {
+        return __length;
     }
 
-    public Message(byte[] data) {
-        length= (ushort)data.Length;
-        content = data;
+    public byte[] getContent()
+    {
+        return __content;
     }
+
 }

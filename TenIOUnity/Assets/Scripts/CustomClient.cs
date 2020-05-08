@@ -72,11 +72,11 @@ public class CustomClient : MonoBehaviour, ITcpListener
         __tcpConnection.processMessage();
     }
 
-    public void onReceivedTCP(Message message) 
+    public void onReceivedTCP(TcpMessage message) 
     {
         MsgPack msgpack = new MsgPack();
         
-        msgpack.DecodeFromBytes(message.content);
+        msgpack.DecodeFromBytes(message.getContent());
 
         StringBuilder builder = new StringBuilder();
         builder.Append("[");
@@ -115,7 +115,7 @@ public class CustomClient : MonoBehaviour, ITcpListener
         MsgPack msgpack = new MsgPack();
         msgpack.ForcePathObject("u").AsString = "kong";
         byte[] packData = msgpack.Encode2Bytes();
-        var msg = new Message(packData);
+        var msg = new TcpMessage(packData);
         __tcpConnection.send(msg);
     }
 
